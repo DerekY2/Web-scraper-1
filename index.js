@@ -11,26 +11,20 @@ const url = 'https://booking.carleton.ca/index.php?p=RoomSearch&r=1'
 const scrapeData = async () => {
   const browser = await puppeteer.launch({headless: false})
   const page = await browser.newPage();
+  const initHTML = cheerio.load(await page.content());
   await page.goto(url, { waitUntil: 'networkidle2' })
   await page.click('#tpgTimeline.tabLeft')
   
-  await page.waitForSelector('#uhid1')
-  console.log('#uhid1 loaded')
-  // Simulate hover action
-  await page.hover('#uhid1')
-  console.log('Hovered over #uhid1')
-
-  // Click the dropdown to ensure it is initialized
-  await page.click('#uhid1')
-  console.log('Clicked #uhid1')
-
+  await page.hover('.TimelineViewActionBarResultsPerPage');
+  console.log(`${initHTML} ------ initial HTML`)
   // Select the option
-  await page.select('#uhid1', '1000')
-  console.log('Selected 1000 in #uhid1')
- 
+  //await page.select('.TimelineViewActionBarResultsPerPage select', '1000')
+  //console.log('Selected 1000 in #uhid1')
+
   // Wait for an element that appears as a result of the change
-  await page.waitForFunction(() => document.querySelector('#uhid1').value === '1000');
- 
+  await page.waitForFunction(() => document.querySelector('.TimelineViewActionBarResultsPerPage select').value === '1000');
+  //console.log(`${cheerio.load(await page.content())('.TimelineViewActionBarResultsPerPage').html()} ---timelinefilter`)
+
   try{
     await page.waitForSelector('.TimelineViewBlock')
     
@@ -39,9 +33,16 @@ const scrapeData = async () => {
     const articles = []
 
     //console.log(html)
+    //console.log($('.TimelineViewActionBarResultsPerPage select').html())
 
+    $('.TImelineViewActionBarResultsPerPage').each(function(){
+      const resultsPerPage = $(this).html()
+      console.log(`${resultsPerPage} ----- results per page logged`)
+    })  
+    console.log(html)
     $('.TimelineViewBlock').each(function(){
       const blockHTML = $(this).html();
+      console.log(`${blockHTML} ----- block HTML logged`)
       const lines = blockHTML.split('<br>').map(line => cheerio.load(line).text().trim())
       const popupDataHTML = $(this).find('.popupData').html();
       const info = cheerio.load(popupDataHTML.split('<br>')[0]).text().trim()
